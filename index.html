@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="Neon Brain - Test your memory with this addictive pattern sequence game">
+    <title>Neon Brain</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tilt+Neon&family=Audiowide&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0015 0%, #1a0033 50%, #000000 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 20px;
+            padding-bottom: 60px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 400;
+            font-family: 'Tilt Neon', cursive;
+            background: linear-gradient(90deg, #00ffff 0%, #ff00ff 25%, #ccff00 50%, #ff6600 75%, #00ffff 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient 3s linear infinite;
+            margin-bottom: 0px;
+            transition: all 0.1s;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1rem;
+            font-family: 'Audiowide', cursive;
+            color: #00ffff;
+            opacity: 0;
+            margin-top: 5px;
+            margin-bottom: 20px;
+            transition: opacity 0.1s;
+        }
+
+        .subtitle.blink {
+            opacity: 1;
+        }
+
+        .title.flicker {
+            opacity: 0.4;
+            filter: brightness(0.5);
+            text-shadow: none;
+        }
+
+        .title:not(.flicker) {
+            text-shadow: 0 0 20px rgba(0,255,255,0.6), 0 0 40px rgba(255,0,255,0.4), 0 0 60px rgba(204,255,0,0.3);
+            filter: brightness(1.2);
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .score-panel {
+            background: rgba(0,0,0,0.6);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 30px rgba(0,255,255,0.5), inset 0 0 20px rgba(0,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: #00ffff;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0,255,255,0.8);
+            color: #00ffff;
+        }
+
+        .high-score-value {
+            color: #ff00ff;
+            text-shadow: 0 0 10px rgba(255,0,255,0.8);
+        }
+
+        .sound-btn {
+            background: #ff0099;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sound-btn:hover {
+            background: #cc0077;
+        }
+
+        .sound-btn.active {
+            box-shadow: 0 0 20px rgba(255,0,255,0.7);
+        }
+
+        .game-board {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%;
+            background: linear-gradient(135deg, #0a0015 0%, #000000 100%);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #8b2bc6;
+            box-shadow: 0 0 40px rgba(138,43,226,0.6), inset 0 0 30px rgba(138,43,226,0.2);
+        }
+
+        .buttons-grid {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            right: 30px;
+            bottom: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .game-button {
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            position: relative;
+        }
+
+        .game-button:disabled {
+            cursor: not-allowed;
+        }
+
+        .game-button:not(:disabled):hover {
+            transform: scale(1.05);
+        }
+
+        .game-button.active {
+            transform: scale(1.1) !important;
+        }
+
+        .center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background: #000;
+            border-radius: 50%;
+            border: 4px solid #00ffff;
+            box-shadow: 0 0 30px rgba(0,255,255,0.8), inset 0 0 15px rgba(0,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .center-text {
+            font-size: 0.8rem;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .controls {
+            text-align: center;
+        }
+
+        .game-over-panel {
+            background: rgba(255,0,0,0.2);
+            border: 2px solid #ff0000;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 30px rgba(255,0,0,0.5);
+        }
+
+        .game-over-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255,0,0,0.8);
+            margin-bottom: 10px;
+        }
+
+        .final-score {
+            color: #ff6666;
+        }
+
+        .start-btn {
+            background: linear-gradient(90deg, #00ffff, #8b2bc6, #ff00ff);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(0,255,255,0.6), 0 0 50px rgba(255,0,255,0.4);
+            transition: all 0.3s;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .status-text {
+            color: #bb88ff;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .instructions {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #ff0099;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 0 20px rgba(255,0,255,0.4);
+        }
+
+        .instructions h3 {
+            color: #ff0099;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255,0,255,0.6);
+        }
+
+        .instructions ul {
+            list-style: none;
+            color: #bb88ff;
+            font-size: 0.9rem;
+        }
+
+        .instructions li {
+            margin: 5px 0;
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 15px;
+                padding-bottom: 40px;
+            }
+
+            .container {
+                margin-top: 10px;
+            }
+
+            .title {
+                font-size: 2.2rem;
+                margin-bottom: 0px;
+            }
+
+            .subtitle {
+                font-size: 0.85rem;
+                margin-top: 3px;
+                margin-bottom: 15px;
+            }
+
+            .score-panel {
+                padding: 12px;
+                margin-bottom: 15px;
+            }
+
+            .score-label {
+                font-size: 0.75rem;
+            }
+
+            .score-value {
+                font-size: 1.5rem;
+            }
+
+            .sound-btn {
+                width: 45px;
+                height: 45px;
+            }
+
+            .game-board {
+                margin-bottom: 15px;
+            }
+            
+            .buttons-grid {
+                top: 20px;
+                left: 20px;
+                right: 20px;
+                bottom: 20px;
+                gap: 15px;
+            }
+            
+            .center-circle {
+                width: 70px;
+                height: 70px;
+            }
+
+            .center-text {
+                font-size: 0.7rem;
+            }
+
+            .start-btn {
+                padding: 12px 30px;
+                font-size: 1.1rem;
+            }
+
+            .instructions {
+                padding: 15px;
+                margin-top: 20px;
+            }
+
+            .instructions h3 {
+                font-size: 1rem;
+            }
+
+            .instructions li {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title" id="title">Neon Brain</h1>
+        <div class="subtitle" id="subtitle">AliGattor Games</div>
+
+        <div class="score-panel">
+            <div class="score-item">
+                <div class="score-label">Score</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+            <div class="score-item">
+                <div class="score-label">High Score</div>
+                <div class="score-value high-score-value" id="highScore">0</div>
+            </div>
+            <button class="sound-btn active" id="soundBtn" aria-label="Toggle sound">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" id="soundWaves"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="game-board">
+            <div class="buttons-grid" id="buttonsGrid"></div>
+            <div class="center-circle">
+                <div class="center-text" id="centerText"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div id="gameOverPanel" style="display: none;" class="game-over-panel">
+                <div class="game-over-title">Game Over!</div>
+                <div class="final-score">Final Score: <span id="finalScore">0</span></div>
+            </div>
+            <button class="start-btn" id="startBtn">START GAME</button>
+            <div class="status-text" id="statusText"></div>
+        </div>
+
+        <div class="instructions">
+            <h3>How to Play:</h3>
+            <ul>
+                <li>• Watch the neon sequence</li>
+                <li>• Tap the colors in order</li>
+                <li>• Each round adds one more</li>
+                <li>• Test your memory!</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const colors = [
+            { id: 0, color: '#00ffff', inactiveColor: '#00cccc', glowColor: '#00ffff', frequency: 329.63, harmonics: [659.26, 987.89] },
+            { id: 1, color: '#ff00ff', inactiveColor: '#cc00cc', glowColor: '#ff00ff', frequency: 293.66, harmonics: [587.32, 880.98] },
+            { id: 2, color: '#ccff00', inactiveColor: '#99cc00', glowColor: '#ccff00', frequency: 349.23, harmonics: [698.46, 1046.69] },
+            { id: 3, color: '#ff6600', inactiveColor: '#cc5200', glowColor: '#ff6600', frequency: 261.63, harmonics: [523.26, 784.89] }
+        ];
+
+        let sequence = [];
+        let playerSequence = [];
+        let isPlaying = false;
+        let isPlayerTurn = false;
+        let score = 0;
+        let highScore = 0;
+        let gameStarted = false;
+        let gameOver = false;
+        let soundEnabled = true;
+        let audioContext = null;
+
+        // Initialize audio context
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Create game buttons
+        const buttonsGrid = document.getElementById('buttonsGrid');
+        colors.forEach(color => {
+            const button = document.createElement('button');
+            button.className = 'game-button';
+            button.dataset.colorId = color.id;
+            button.disabled = true;
+            updateButtonStyle(button, color, false);
+            button.addEventListener('click', () => handleButtonClick(color.id));
+            buttonsGrid.appendChild(button);
+        });
+
+        function updateButtonStyle(button, color, active) {
+            const bg = active ? color.color : color.inactiveColor;
+            const shadow = active 
+                ? `0 0 60px ${color.glowColor}, 0 0 100px ${color.glowColor}, inset 0 0 40px rgba(255,255,255,0.5), 0 0 5px ${color.glowColor}, 0 0 10px ${color.glowColor}`
+                : `0 0 25px ${color.glowColor}, 0 0 40px ${color.glowColor}80, inset 0 5px 15px rgba(0,0,0,0.5), 0 0 3px ${color.glowColor}`;
+            const brightness = active ? 1.8 : 1.1;
+            const dropShadow = active ? `drop-shadow(0 0 8px ${color.glowColor})` : `drop-shadow(0 0 4px ${color.glowColor})`;
+            
+            button.style.backgroundColor = bg;
+            button.style.boxShadow = shadow;
+            button.style.border = `4px solid ${color.color}`;
+            button.style.outline = `2px solid ${color.glowColor}`;
+            button.style.outlineOffset = '-6px';
+            button.style.filter = `brightness(${brightness}) ${dropShadow}`;
+        }
+
+        function playGuitarSound(frequency, harmonics, duration = 450) {
+            if (!soundEnabled || !audioContext) return;
+
+            initAudio();
+            const now = audioContext.currentTime;
+
+            const osc1 = audioContext.createOscillator();
+            const gain1 = audioContext.createGain();
+            const osc2 = audioContext.createOscillator();
+            const gain2 = audioContext.createGain();
+            const osc3 = audioContext.createOscillator();
+            const gain3 = audioContext.createGain();
+
+            const distortion = audioContext.createWaveShaper();
+            const filter = audioContext.createBiquadFilter();
+            const masterGain = audioContext.createGain();
+
+            const curve = new Float32Array(256);
+            for (let i = 0; i < 256; i++) {
+                const x = (i - 128) / 128;
+                curve[i] = Math.tanh(x * 2) * 0.8;
+            }
+            distortion.curve = curve;
+
+            filter.type = 'lowpass';
+            filter.frequency.value = 3000;
+            filter.Q.value = 3;
+
+            osc1.frequency.value = frequency;
+            osc1.type = 'sawtooth';
+            osc2.frequency.value = harmonics[0];
+            osc2.type = 'square';
+            osc3.frequency.value = harmonics[1];
+            osc3.type = 'triangle';
+
+            osc1.connect(gain1);
+            osc2.connect(gain2);
+            osc3.connect(gain3);
+            gain1.connect(distortion);
+            gain2.connect(distortion);
+            gain3.connect(distortion);
+            distortion.connect(filter);
+            filter.connect(masterGain);
+            masterGain.connect(audioContext.destination);
+
+            gain1.gain.setValueAtTime(0, now);
+            gain1.gain.linearRampToValueAtTime(0.4, now + 0.01);
+            gain1.gain.exponentialRampToValueAtTime(0.25, now + 0.1);
+            gain1.gain.exponentialRampToValueAtTime(0.01, now + duration / 1000);
+            
+            gain2.gain.setValueAtTime(0, now);
+            gain2.gain.linearRampToValueAtTime(0.15, now + 0.01);
+            gain2.gain.exponentialRampToValueAtTime(0.08, now + 0.1);
+            gain2.gain.exponentialRampToValueAtTime(0.01, now + duration / 1000);
+            
+            gain3.gain.setValueAtTime(0, now);
+            gain3.gain.linearRampToValueAtTime(0.08, now + 0.015);
+            gain3.gain.exponentialRampToValueAtTime(0.04, now + 0.12);
+            gain3.gain.exponentialRampToValueAtTime(0.01, now + duration / 1000);
+
+            masterGain.gain.setValueAtTime(0.6, now);
+            masterGain.gain.exponentialRampToValueAtTime(0.01, now + duration / 1000);
+
+            osc1.start(now);
+            osc2.start(now);
+            osc3.start(now);
+            osc1.stop(now + duration / 1000);
+            osc2.stop(now + duration / 1000);
+            osc3.stop(now + duration / 1000);
+        }
+
+        function playErrorSound() {
+            if (!soundEnabled || !audioContext) return;
+
+            initAudio();
+            const now = audioContext.currentTime;
+            
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            const distortion = audioContext.createWaveShaper();
+            
+            const curve = new Float32Array(256);
+            for (let i = 0; i < 256; i++) {
+                const x = (i - 128) / 128;
+                curve[i] = Math.tanh(x * 4);
+            }
+            distortion.curve = curve;
+            
+            osc.connect(distortion);
+            distortion.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(200, now);
+            osc.frequency.exponentialRampToValueAtTime(50, now + 0.5);
+            
+            gain.gain.setValueAtTime(0.5, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            
+            osc.start(now);
+            osc.stop(now + 0.5);
+        }
+
+        async function flashButton(colorId) {
+            const button = document.querySelector(`[data-color-id="${colorId}"]`);
+            const color = colors[colorId];
+            
+            button.classList.add('active');
+            updateButtonStyle(button, color, true);
+            playGuitarSound(color.frequency, color.harmonics);
+            
+            await new Promise(resolve => setTimeout(resolve, 450));
+            
+            button.classList.remove('active');
+            updateButtonStyle(button, color, false);
+            
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        async function playSequence(seq) {
+            isPlaying = true;
+            isPlayerTurn = false;
+            updateUI();
+            
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            for (let colorId of seq) {
+                await flashButton(colorId);
+            }
+            
+            isPlaying = false;
+            isPlayerTurn = true;
+            updateUI();
+        }
+
+        function startGame() {
+            initAudio();
+            const newSequence = [Math.floor(Math.random() * 4)];
+            sequence = newSequence;
+            playerSequence = [];
+            score = 0;
+            gameStarted = true;
+            gameOver = false;
+            updateUI();
+            playSequence(newSequence);
+        }
+
+        async function handleButtonClick(colorId) {
+            if (!isPlayerTurn || isPlaying) return;
+
+            initAudio();
+            const button = document.querySelector(`[data-color-id="${colorId}"]`);
+            const color = colors[colorId];
+            
+            button.classList.add('active');
+            updateButtonStyle(button, color, true);
+            playGuitarSound(color.frequency, color.harmonics);
+            
+            await new Promise(resolve => setTimeout(resolve, 350));
+            
+            button.classList.remove('active');
+            updateButtonStyle(button, color, false);
+
+            playerSequence.push(colorId);
+            const currentIndex = playerSequence.length - 1;
+            
+            if (playerSequence[currentIndex] !== sequence[currentIndex]) {
+                playErrorSound();
+                gameOver = true;
+                isPlayerTurn = false;
+                if (score > highScore) {
+                    highScore = score;
+                }
+                updateUI();
+                return;
+            }
+
+            if (playerSequence.length === sequence.length) {
+                score++;
+                playerSequence = [];
+                updateUI();
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                sequence.push(Math.floor(Math.random() * 4));
+                playSequence(sequence);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('highScore').textContent = highScore;
+            document.getElementById('finalScore').textContent = score;
+            
+            const buttons = document.querySelectorAll('.game-button');
+            buttons.forEach(btn => btn.disabled = !isPlayerTurn || isPlaying);
+            
+            const centerText = document.getElementById('centerText');
+            if (isPlaying) {
+                centerText.textContent = 'WATCH';
+                centerText.style.color = '#00ffff';
+                centerText.style.textShadow = '0 0 10px rgba(0,255,255,1)';
+            } else if (isPlayerTurn) {
+                centerText.textContent = 'GO!';
+                centerText.style.color = '#ccff00';
+                centerText.style.textShadow = '0 0 10px rgba(204,255,0,1)';
+            } else {
+                centerText.textContent = '';
+            }
+            
+            const gameOverPanel = document.getElementById('gameOverPanel');
+            const startBtn = document.getElementById('startBtn');
+            const statusText = document.getElementById('statusText');
+            
+            if (!gameStarted || gameOver) {
+                gameOverPanel.style.display = gameOver ? 'block' : 'none';
+                startBtn.style.display = 'inline-block';
+                startBtn.textContent = gameOver ? 'PLAY AGAIN' : 'START GAME';
+                statusText.textContent = '';
+            } else {
+                gameOverPanel.style.display = 'none';
+                startBtn.style.display = 'none';
+                statusText.textContent = isPlaying ? 'Watch the sequence...' : 'Repeat the pattern!';
+            }
+        }
+
+        // Sound toggle
+        document.getElementById('soundBtn').addEventListener('click', function() {
+            soundEnabled = !soundEnabled;
+            this.classList.toggle('active', soundEnabled);
+            const waves = document.getElementById('soundWaves');
+            waves.style.display = soundEnabled ? 'block' : 'none';
+        });
+
+        // Start button
+        document.getElementById('startBtn').addEventListener('click', startGame);
+
+        // Title flicker effect
+        const title = document.getElementById('title');
+        setInterval(() => {
+            if (Math.random() > 0.85) {
+                title.classList.add('flicker');
+                setTimeout(() => {
+                    title.classList.remove('flicker');
+                    if (Math.random() > 0.5) {
+                        setTimeout(() => {
+                            title.classList.add('flicker');
+                            setTimeout(() => title.classList.remove('flicker'), 80);
+                        }, 150);
+                    }
+                }, 100);
+            }
+        }, 3000);
+
+        // Subtitle erratic blink effect
+        const subtitle = document.getElementById('subtitle');
+        const neonColors = ['#00ffff', '#ff00ff', '#ccff00', '#ff6600'];
+        
+        function subtitleBlink() {
+            const waitTime = 3000 + Math.random() * 4000; // 3-7 seconds wait
+            
+            setTimeout(() => {
+                const color = neonColors[Math.floor(Math.random() * neonColors.length)];
+                subtitle.style.color = color;
+                subtitle.style.textShadow = `0 0 15px ${color}, 0 0 30px ${color}`;
+                
+                // Erratic blink pattern - 2-5 blinks
+                const blinkCount = 2 + Math.floor(Math.random() * 4);
+                let currentBlink = 0;
+                
+                function doBlink() {
+                    if (currentBlink >= blinkCount) {
+                        subtitle.classList.remove('blink');
+                        subtitleBlink(); // Schedule next appearance
+                        return;
+                    }
+                    
+                    const onTime = 80 + Math.random() * 120; // 80-200ms on
+                    const offTime = 50 + Math.random() * 150; // 50-200ms off
+                    
+                    subtitle.classList.add('blink');
+                    setTimeout(() => {
+                        subtitle.classList.remove('blink');
+                        currentBlink++;
+                        setTimeout(doBlink, offTime);
+                    }, onTime);
+                }
+                
+                doBlink();
+            }, waitTime);
+        }
+        
+        subtitleBlink(); // Start the cycle
+
+        // Initial UI update
+        updateUI();
+    </script>
+</body>
+</html>
