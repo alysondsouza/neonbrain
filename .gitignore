@@ -1,6 +1,22 @@
+# Keystore files
+*.jks
+*.keystore
+android.keystore
+KEYSTORE-PASSWORD.txt
+
+# Bubblewrap build files
+app-release-bundle.aab
+app-release-signed.apk
+/app/
+
+# Google Services (e.g. APIs or Firebase)
+google-services.json
+
 # Gradle files
 .gradle/
 build/
+/gradle/
+/manifest-checksum.txt
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -22,13 +38,6 @@ output-metadata.json
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
-
-# Keystore files
-*.jks
-*.keystore
-
-# Google Services (e.g. APIs or Firebase)
-google-services.json
 
 # Android Profiling
 *.hprof
