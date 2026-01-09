@@ -3,9 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#000000">
-    <meta name="description" content="Neon Brain - Test your memory with this addictive pattern sequence game">
-    <title>Neon Brain</title>
+    <meta name="theme-color" content="#8b2bc6">
+    <meta name="description" content="Test your memory with this addictive neon pattern sequence game">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Neon Brain">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="icons/icon-96.png">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <title>AliGattor Games: Neon Brain</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tilt+Neon&family=Audiowide&display=swap" rel="stylesheet">
@@ -759,6 +767,15 @@
         }
         
         subtitleBlink(); // Start the cycle
+
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed'));
+            });
+        }
 
         // Initial UI update
         updateUI();
